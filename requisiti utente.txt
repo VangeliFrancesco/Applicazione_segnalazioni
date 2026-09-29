@@ -1,0 +1,15 @@
+requisiti utente:
+registrazione utenti con credenziali e dati
+differenziazione ruoli (utente registrato e admin)
+ogni azione deve essere tracciabile (log)
+
+raccolta segnalazione:
+titolo
+descrizione
+prova multimediale obbligatoria (foto e video)
+localizzazione
+categoria
+ciclo di vita della segnalazione
+possibilità per altri utenti di interagire con la segnalazione
+
+categoria
