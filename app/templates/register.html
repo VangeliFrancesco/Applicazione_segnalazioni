@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <title>Registrazione</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f6f3; margin: 0; padding: 32px; }
+      .card { max-width: 420px; margin: 40px auto; background: white; border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+      h1 { margin-top: 0; }
+      form { display: flex; flex-direction: column; gap: 14px; }
+      label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+      input { padding: 10px 12px; border: 1px solid #cfd7d2; border-radius: 8px; }
+      button { background: #1f5f53; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 15px; cursor: pointer; }
+      .muted { color: #4d5a54; font-size: 14px; }
+      .flash { margin-bottom: 16px; padding: 10px 12px; border-radius: 8px; background: #eefaf2; color: #194d38; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Registrazione</h1>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('main.register_submit') }}">
+        <label>
+          Nome
+          <input type="text" name="first_name" required>
+        </label>
+        <label>
+          Cognome
+          <input type="text" name="last_name" required>
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" required>
+        </label>
+        <label>
+          Password
+          <input type="password" name="password" required>
+        </label>
+        <label>
+          Conferma password
+          <input type="password" name="confirm_password" required>
+        </label>
+        <button type="submit">Crea account</button>
+      </form>
+      <p class="muted">Hai già un account? <a href="{{ url_for('main.login') }}">Accedi</a></p>
+    </div>
+  </body>
+</html>

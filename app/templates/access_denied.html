@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <title>Accesso non consentito</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f6f3; margin: 0; padding: 32px; }
+      .card { max-width: 600px; margin: 40px auto; background: white; border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+      h1 { margin-top: 0; color: #9a3d2d; }
+      a { color: #1f5f53; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Accesso non consentito</h1>
+      <p>Questo account non ha i permessi necessari per accedere all'area amministrativa.</p>
+      <p><a href="{{ url_for('main.dashboard') }}">Torna al dashboard</a></p>
+    </div>
+  </body>
+</html>

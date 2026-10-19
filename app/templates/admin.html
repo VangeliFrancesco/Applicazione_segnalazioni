@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <title>Amministrazione</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f6f3; margin: 0; padding: 32px; }
+      .card { max-width: 700px; margin: 40px auto; background: white; border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+      h1 { margin-top: 0; }
+      .meta { color: #4d5a54; }
+      a { color: #1f5f53; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Area admin</h1>
+      <p class="meta">Accesso consentito per {{ user.first_name }} {{ user.last_name }}.</p>
+      <p>Gestisci revisioni, pubblicazione e avanzamento delle segnalazioni.</p>
+      <p><a href="{{ url_for('main.admin_reports') }}">Apri la gestione segnalazioni</a></p>
+      <p><a href="{{ url_for('main.dashboard') }}">Torna al dashboard</a></p>
+    </div>
+  </body>
+</html>

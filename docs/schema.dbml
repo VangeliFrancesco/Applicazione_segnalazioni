@@ -1,0 +1,193 @@
+Project piattaforma_civica {
+  database_type: 'MySQL'
+  Note: 'Schema approvato, migrazione iniziale non ancora applicata.'
+}
+
+Table quartiere {
+  id int [pk, increment]
+  nome varchar(120) [not null, unique]
+  codice varchar(32) [not null, unique]
+}
+
+Table utente {
+  id int [pk, increment]
+  nome varchar(100) [not null]
+  cognome varchar(100) [not null]
+  email varchar(254) [not null, unique]
+  password_hash varchar(255) [not null]
+  ruolo varchar(16) [not null, note: 'UTENTE | ADMIN']
+  stato_account varchar(16) [not null, note: 'ATTIVO | DISATTIVATO']
+  data_registrazione datetime [not null]
+  data_verifica_email datetime
+  quartiere_id int [ref: > quartiere.id]
+}
+
+Table segnalazione {
+  id int [pk, increment]
+  autore_id int [not null, ref: > utente.id]
+  stato_operativo varchar(32) [not null]
+  data_creazione datetime [not null]
+  data_ultimo_aggiornamento datetime [not null]
+  Indexes { (autore_id) }
+}
+
+Table versione {
+  id int [pk, increment]
+  segnalazione_id int [not null, ref: > segnalazione.id]
+  numero_versione int [not null]
+  redattore_id int [not null, ref: > utente.id]
+  titolo varchar(180) [not null]
+  descrizione text [not null]
+  latitudine float [not null]
+  longitudine float [not null]
+  indirizzo varchar(255)
+  origine_localizzazione varchar(32) [not null]
+  quartiere_id int [ref: > quartiere.id]
+  stato_moderazione varchar(32) [not null]
+  data_creazione datetime [not null]
+  data_invio datetime
+  motivo_modifica text
+
+  Indexes {
+    (segnalazione_id, numero_versione) [unique]
+    (id, segnalazione_id) [unique]
+  }
+
+  Note: 'numero_versione > 0; coordinate entro i limiti geografici.'
+}
+
+Table allegato {
+  id int [pk, increment]
+  segnalazione_id int [not null, ref: > segnalazione.id]
+  caricatore_id int [not null, ref: > utente.id]
+  tipo varchar(8) [not null, note: 'FOTO | VIDEO']
+  tipo_contenuto varchar(120) [not null]
+  riferimento_storage varchar(512) [not null, unique]
+  dimensione int [not null]
+  durata_secondi int
+  checksum varchar(64) [not null]
+  stato_file varchar(16) [not null]
+  data_caricamento datetime [not null]
+
+  Indexes {
+    (id, segnalazione_id) [unique]
+    (segnalazione_id)
+  }
+}
+
+Table metadati_allegato {
+  attachment_id int [pk, ref: - allegato.id]
+  latitudine_estratta float
+  longitudine_estratta float
+  data_originale_dichiarata datetime
+  informazioni_tecniche json
+  data_estrazione datetime [not null]
+
+  Note: 'Le coordinate estratte, se presenti, rispettano latitudine [-90,90] e longitudine [-180,180].'
+}
+
+Table categoria {
+  id int [pk, increment]
+  nome varchar(100) [not null, unique]
+  descrizione text
+  attiva boolean [not null]
+}
+
+Table versione_allegato {
+  versione_id int [pk]
+  allegato_id int [pk]
+  segnalazione_id int [not null]
+  ordine int [not null]
+
+  Indexes {
+    (versione_id, ordine) [unique]
+    (versione_id, segnalazione_id) [name: 'fk_versione_allegato_stessa_segnalazione']
+    (allegato_id, segnalazione_id) [name: 'fk_allegato_stessa_segnalazione']
+  }
+
+  Note: 'ordine >= 0; collegamenti composti impediscono allegati di altre segnalazioni.'
+}
+
+Table assegnazione_categoria {
+  versione_id int [pk, ref: > versione.id]
+  categoria_id int [pk, ref: > categoria.id]
+  origine varchar(8) [pk, note: 'UTENTE | IA | ADMIN']
+  indicazione varchar(12) [not null, note: 'SELEZIONATA | SUGGERITA | CONFERMATA | ESCLUSA']
+  confidenza float
+  data_assegnazione datetime [not null]
+
+  Note: 'Origine e indicazione sono coerenti; confidenza eventuale tra 0 e 1.'
+}
+
+Table sostegno {
+  utente_id int [pk, ref: > utente.id]
+  segnalazione_id int [pk, ref: > segnalazione.id]
+  attivo boolean [not null]
+  data_creazione datetime [not null]
+  data_aggiornamento datetime [not null]
+
+  Indexes { (segnalazione_id, attivo) }
+}
+
+Table pubblicazione {
+  segnalazione_id int [pk, ref: > segnalazione.id]
+  versione_id int [not null, unique]
+  data_pubblicazione datetime [not null]
+}
+
+Table verifica_email {
+  id int [pk, increment]
+  utente_id int [not null, ref: > utente.id]
+  token_hash varchar(64) [not null, unique]
+  data_creazione datetime [not null]
+  data_scadenza datetime [not null]
+  data_utilizzo datetime
+}
+
+Table sessione_utente {
+  id int [pk, increment]
+  utente_id int [not null, ref: > utente.id]
+  token_hash varchar(64) [not null, unique]
+  data_creazione datetime [not null]
+  data_scadenza datetime [not null]
+  data_revoca datetime
+}
+
+Table log_audit {
+  id int [pk, increment]
+  attore_id int [ref: > utente.id]
+  azione varchar(80) [not null]
+  tipo_entita varchar(40) [not null]
+  id_entita int
+  dettagli json
+  data_evento datetime [not null]
+
+  Indexes { (tipo_entita, id_entita, data_evento) }
+}
+
+Table cronologia_stato {
+  id int [pk, increment]
+  segnalazione_id int [not null, ref: > segnalazione.id]
+  attore_id int [ref: > utente.id]
+  stato_precedente varchar(32)
+  stato_nuovo varchar(32) [not null]
+  motivazione text
+  data_evento datetime [not null]
+
+  Indexes { (segnalazione_id, data_evento) }
+}
+
+Table decisione_moderazione {
+  id int [pk, increment]
+  versione_id int [not null, ref: > versione.id]
+  admin_id int [not null, ref: > utente.id]
+  esito varchar(24) [not null, note: 'APPROVATA | RIFIUTATA | RICHIESTE_MODIFICHE']
+  motivazione text [not null]
+  data_decisione datetime [not null]
+
+  Indexes { (versione_id, data_decisione) }
+}
+
+Ref: (versione_allegato.versione_id, versione_allegato.segnalazione_id) > (versione.id, versione.segnalazione_id)
+Ref: (versione_allegato.allegato_id, versione_allegato.segnalazione_id) > (allegato.id, allegato.segnalazione_id)
+Ref: (pubblicazione.versione_id, pubblicazione.segnalazione_id) > (versione.id, versione.segnalazione_id)

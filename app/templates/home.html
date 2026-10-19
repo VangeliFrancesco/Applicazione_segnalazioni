@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f2f4ef">
+    <title>La Nostra Città, Il Nostro Futuro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="{{ url_for('static', filename='js/home.js') }}"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#inizio" aria-label="La Nostra Città, pagina iniziale">
+        <span class="brand-mark" aria-hidden="true">MI</span>
+        <span class="brand-name">La Nostra Città<span>Il Nostro Futuro</span></span>
+      </a>
+      <nav class="main-nav" aria-label="Navigazione principale">
+        <a class="nav-active" href="#segnalazioni">Segnalazioni</a>
+        <a href="#mappa">Mappa</a>
+        <a href="#progetto">Il progetto</a>
+        {% if session.get('user_id') %}
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        {% else %}
+        <a href="{{ url_for('main.login') }}">Accedi</a>
+        <a href="{{ url_for('main.register') }}">Registrati</a>
+        {% endif %}
+      </nav>
+      <span class="committee">Insieme per Milano</span>
+    </header>
+
+    <main id="inizio">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="flash-message">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span> OSSERVATORIO CIVICO · MILANO</p>
+          <h1 id="page-title">La città vista<br>da vicino.</h1>
+        </div>
+        <p class="intro-copy">Luoghi, problemi e priorità raccontati da chi vive i quartieri. Una base condivisa per decidere cosa portare all’attenzione dei candidati.</p>
+      </section>
+
+      {% if preview_mode %}
+      <aside class="preview-notice" role="status">
+        <span class="notice-symbol" aria-hidden="true">i</span>
+        <span><strong>Anteprima interattiva</strong> · dati temporanei, isolati da MySQL. Utente: <code>demo.utente@example.test</code> / <code>DemoUtente1!</code>. Admin: <code>demo.admin@example.test</code> / <code>DemoAdmin1!</code>.</span>
+      </aside>
+      {% endif %}
+
+      <section class="workspace" id="segnalazioni" aria-label="Segnalazioni pubbliche">
+        <div class="report-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">IL TERRITORIO</p>
+              <h2>Segnalazioni pubbliche</h2>
+            </div>
+            {% if not preview_mode %}<span class="result-count">{{ reports|length }}</span>{% endif %}
+          </div>
+
+          <div class="report-list">
+            {% if reports %}
+              {% for report in reports %}
+              <div class="report-card">
+                <button class="report-row" type="button" data-report-id="{{ report.id }}">
+                  <span class="report-row-top"><span class="report-pin" aria-hidden="true"></span><time>{{ report.published_at }}</time></span>
+                  <strong>{{ report.title }}</strong>
+                  <span class="report-description">{{ report.description|truncate(150) }}</span>
+                </button>
+                {% for attachment in report.attachments %}
+                <div class="report-media">
+                  {% if attachment.media_type == 'FOTO' %}
+                  <img src="{{ attachment.url }}" alt="Prova fotografica: {{ report.title }}" loading="lazy">
+                  {% else %}
+                  <video controls preload="metadata" aria-label="Prova video: {{ report.title }}">
+                    <source src="{{ attachment.url }}">
+                    Il browser non supporta la riproduzione video.
+                  </video>
+                  {% endif %}
+                </div>
+                {% endfor %}
+                {% if session.get('user_id') %}
+                <form class="support-form" method="post" action="{{ url_for('main.support_report', report_id=report.id) }}">
+                  <button type="submit" class="support-button">Sostieni</button>
+                </form>
+                {% endif %}
+              </div>
+              {% endfor %}
+            {% elif not preview_mode %}
+              <div class="empty-state">
+                <span class="empty-rule" aria-hidden="true"></span>
+                <h3>Nessuna segnalazione pubblica</h3>
+                <p>Le segnalazioni appariranno qui dopo la revisione del comitato.</p>
+              </div>
+            {% else %}
+              <div class="empty-state preview-empty">
+                <span class="empty-rule" aria-hidden="true"></span>
+                <h3>La mappa è pronta ad accogliere le voci dei quartieri.</h3>
+                <p>I contenuti compariranno qui quando il database sarà configurato.</p>
+              </div>
+            {% endif %}
+          </div>
+          <div class="panel-footnote"><span class="footnote-mark" aria-hidden="true">↗</span> La presa in carico è del comitato, non del Comune.</div>
+        </div>
+
+        <div class="map-panel" id="mappa">
+          <div class="map-heading">
+            <div><span class="map-location-dot" aria-hidden="true"></span><span>Milano, Italia</span></div>
+            <span class="map-caption">MAPPA DELLE SEGNALAZIONI</span>
+          </div>
+          <div id="city-map" role="region" aria-label="Mappa delle segnalazioni pubbliche a Milano"></div>
+          <p id="public-map-status" class="map-status" role="status" hidden></p>
+          <div class="map-legend"><span class="legend-dot" aria-hidden="true"></span> Segnalazioni pubblicate</div>
+        </div>
+      </section>
+
+      <section class="project-note" id="progetto">
+        <p class="section-kicker">UNA RETE CIVICA</p>
+        <p>Le segnalazioni aiutano a costruire una priorità condivisa. L’invio ai candidati non equivale alla soluzione del problema.</p>
+        <span>Un progetto di <strong>Insieme per Milano</strong></span>
+      </section>
+    </main>
+
+    <footer class="page-footer"><span>La Nostra Città, Il Nostro Futuro</span><span>Progetto civico indipendente · Milano</span></footer>
+    <script id="public-reports" type="application/json">{{ reports|tojson }}</script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "La Nostra Citta",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "postCreateCommand": "python -m pip install -e '.[dev]'",
+  "forwardPorts": [5000],
+  "portsAttributes": {
+    "5000": {
+      "label": "Flask sviluppo",
+      "onAutoForward": "notify",
+      "visibility": "private"
+    }
+  }
+}

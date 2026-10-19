@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <title>Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f6f3; margin: 0; padding: 32px; }
+      .card { max-width: 800px; margin: 40px auto; background: white; border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+      h1 { margin-top: 0; }
+      .meta { color: #4d5a54; }
+      .actions { margin-top: 24px; display: flex; gap: 12px; }
+      a.button { display: inline-block; padding: 10px 16px; border-radius: 8px; text-decoration: none; background: #1f5f53; color: white; }
+      .secondary { background: #dfe9e5; color: #164437; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Dashboard</h1>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="flash" style="margin-bottom: 16px; padding: 10px 12px; border-radius: 8px; background: #eefaf2; color: #194d38;">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <p class="meta">Bentornato, {{ user.first_name }} {{ user.last_name }}.</p>
+      <p>Ruolo: <strong>{{ user.role }}</strong></p>
+      <h2>Le mie segnalazioni</h2>
+      {% if reports %}
+        <ul>
+          {% for report in reports %}
+          <li><strong>{{ report.title }}</strong> · {{ report.operational_status.replace('_', ' ') }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Non hai ancora inviato segnalazioni.</p>
+      {% endif %}
+      <div class="actions">
+        <a class="button" href="{{ url_for('main.home') }}">Torna alla home</a>
+        <a class="button" href="{{ url_for('main.new_report') }}">Nuova segnalazione</a>
+        {% if user.role == 'ADMIN' %}
+        <a class="button" href="{{ url_for('main.admin_reports') }}">Gestisci segnalazioni</a>
+        {% endif %}
+        <a class="button secondary" href="{{ url_for('main.logout') }}">Disconnetti</a>
+      </div>
+    </div>
+  </body>
+</html>

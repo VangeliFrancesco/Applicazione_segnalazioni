@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <title>Moderazione segnalazioni</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f6f3; margin: 0; padding: 32px; }
+      .card { max-width: 980px; margin: 40px auto; background: white; border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+      h1 { margin-top: 0; }
+      .flash { margin-bottom: 16px; padding: 10px 12px; border-radius: 8px; background: #eefaf2; color: #194d38; }
+      .list { display: grid; gap: 18px; }
+      .item { border: 1px solid #dfe8e3; border-radius: 12px; padding: 18px; }
+      .item h3 { margin: 0 0 8px; }
+      .actions { display: flex; gap: 12px; margin-top: 12px; }
+      select, textarea, button { padding: 10px 12px; border-radius: 8px; border: 1px solid #cfd7d2; }
+      textarea { width: 100%; min-height: 80px; }
+      button { background: #1f5f53; color: white; border: none; }
+      a { color: #1f5f53; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Moderazione segnalazioni</h1>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <p><a href="{{ url_for('main.admin_dashboard') }}">Torna all’area admin</a></p>
+
+      {% if pending_reports %}
+        <div class="list">
+          {% for report in pending_reports %}
+          <div class="item">
+            <h3>{{ report.title }}</h3>
+            <p>{{ report.description }}</p>
+            <p><strong>Stato:</strong> {{ report.moderation_status }}</p>
+            {% if report.attachment_id %}
+            <p><a href="{{ url_for('main.admin_attachment', attachment_id=report.attachment_id) }}">Apri prova {{ report.media_type|lower }}</a></p>
+            {% else %}
+            <p>Prova multimediale non disponibile.</p>
+            {% endif %}
+            {% if report.owner_id == user.id %}
+            <p>Non puoi moderare una tua segnalazione.</p>
+            {% else %}
+            <form method="post" action="{{ url_for('main.report_decision', report_id=report.id) }}">
+              <div class="actions">
+                <select name="outcome" required>
+                  <option value="APPROVATA">Approva</option>
+                  <option value="RIFIUTATA">Rifiuta</option>
+                  <option value="RICHIESTE_MODIFICHE">Richiedi modifiche</option>
+                </select>
+                <button type="submit">Salva decisione</button>
+              </div>
+              <textarea name="reason" placeholder="Motivazione della decisione..."></textarea>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>Nessuna segnalazione in attesa di moderazione.</p>
+      {% endif %}
+
+      <h2>Segnalazioni pubblicate e ciclo di vita</h2>
+      {% if managed_reports %}
+        <div class="list">
+          {% for report in managed_reports %}
+          <div class="item">
+            <h3>{{ report.title }}</h3>
+            <p>{{ report.description }}</p>
+            <p><strong>Stato:</strong> {{ report.operational_status }}</p>
+            <form method="post" action="{{ url_for('main.update_report_status', report_id=report.id) }}">
+              <div class="actions">
+                <select name="status" required>
+                  {% for status in lifecycle_transitions[report.operational_status] %}
+                  <option value="{{ status }}">{{ status.replace('_', ' ') }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit">Aggiorna stato</button>
+              </div>
+              <textarea name="reason" placeholder="Motivazione (facoltativa)"></textarea>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>Nessuna segnalazione pubblicata da gestire.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>

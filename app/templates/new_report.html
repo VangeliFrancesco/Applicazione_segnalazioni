@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <title>Nuova segnalazione</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f6f3; margin: 0; padding: 32px; }
+      .card { max-width: 720px; margin: 40px auto; background: white; border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+      h1 { margin-top: 0; }
+      form { display: grid; gap: 16px; }
+      .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+      label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+      input, textarea, select { padding: 10px 12px; border: 1px solid #cfd7d2; border-radius: 8px; }
+      textarea { min-height: 130px; resize: vertical; }
+      button { background: #1f5f53; color: white; border: none; border-radius: 8px; padding: 12px 18px; font-size: 15px; cursor: pointer; }
+      .flash { margin-bottom: 16px; padding: 10px 12px; border-radius: 8px; background: #eefaf2; color: #194d38; }
+      .location-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+      .location-tools button { padding: 9px 13px; font-size: 13px; }
+      .location-status { color: #52645f; font-size: 12px; }
+      #report-location-map { min-height: 300px; border: 1px solid #cfd7d2; border-radius: 8px; background: #e8ede7; }
+      .map-status { margin: 8px 0; color: #a3422d; font-size: 12px; }
+    </style>
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="{{ url_for('static', filename='js/new_report.js') }}"></script>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Nuova segnalazione</h1>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('main.create_report') }}" enctype="multipart/form-data">
+        <div class="row">
+          <label>
+            Titolo
+            <input type="text" name="title" required>
+          </label>
+          <label>
+            Categoria
+            <select name="category" required>
+              <option value="" disabled selected>Seleziona una categoria</option>
+              {% for category in categories %}
+              <option value="{{ category }}">{{ category }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Descrizione
+          <textarea name="description" required></textarea>
+        </label>
+
+        <div class="row">
+          <label>
+            Latitudine
+            <input id="latitude" type="number" step="0.000001" min="-90" max="90" name="latitude" required>
+          </label>
+          <label>
+            Longitudine
+            <input id="longitude" type="number" step="0.000001" min="-180" max="180" name="longitude" required>
+          </label>
+        </div>
+
+        <div class="location-tools">
+          <button id="use-current-location" type="button">Usa la mia posizione</button>
+          <span id="location-status" class="location-status" role="status">Seleziona il punto sulla mappa o inserisci le coordinate.</span>
+        </div>
+        <div id="report-location-map" role="region" aria-label="Seleziona la posizione della segnalazione sulla mappa"></div>
+        <p id="map-status" class="map-status" role="status" hidden></p>
+
+        <div class="row">
+          <label>
+            Tipo media
+            <select name="media_type" required>
+              <option value="FOTO">FOTO</option>
+              <option value="VIDEO">VIDEO</option>
+            </select>
+          </label>
+          <label>
+            Foto o video (max 64 MB)
+            <input type="file" name="media_file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" required>
+          </label>
+        </div>
+
+        <button type="submit">Invia segnalazione</button>
+      </form>
+    </div>
+  </body>
+</html>
